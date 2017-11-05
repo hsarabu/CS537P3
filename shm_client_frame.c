@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
         }
     }
 	pthread_mutex_unlock(mutex);
-    fprintf(stderr, "Index is %i \n", index);
+    fprintf(stderr, "Index is %i, pid is: %i, string is: %s \n", index, current->pid, current->clientString);
 	if(index == 0){
         fprintf(stderr, "%s\n", "Maximum number of clients reached");
         exit(1);
