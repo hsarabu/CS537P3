@@ -108,7 +108,7 @@ int main(int argc, char *argv[]) {
         sleep(1);
 		// Print active clients
         printf("Active clients:");
-        for(int i= 1; i < MAX_CLIENTS -1; i++){
+        for(int i= 1; i < MAX_CLIENTS; i++){
             stats_t* curr = (stats_t*)(address + (i*SEGSIZE));
             if(curr->active == 1) printf(" %i", curr->pid);
         }
