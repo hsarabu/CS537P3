@@ -70,7 +70,8 @@ int main(int argc, char *argv[])
     while (1) 
 	{
 		for(int i = 1; i < MAX_CLIENTS; i++){
-			if(((stats_t*)(address + i*SEGSIZE))->active == 1){
+			stats_t* curr = ((stats_t*)(address + i*SEGSIZE));
+			if(curr->active == 1 && curr->pid != 0){
 				print_line(((stats_t*)(address + i * SEGSIZE)), curr_iteration);
 			}
 		}
