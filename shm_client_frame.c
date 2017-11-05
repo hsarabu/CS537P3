@@ -21,18 +21,15 @@ typedef struct {
     char clientString[10];
     int elapsed_sec;
     double elapsed_msec;
-    time_t start_time;
     int active;
 } stats_t;
 stats_t* current;
-
-
-int i = 0;
+time_t initial_time;
 
 void exit_handler(int sig) {
     // critical section begins
 	pthread_mutex_lock(mutex);
-    memset(current, 0, 64);
+    memset(current, 0, SEGSIZE);
 	pthread_mutex_unlock(mutex);
 	// critical section ends
 
@@ -45,6 +42,10 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "require 1 arg");
         exit(1);
     }
+
+    //initialize birth timer
+    initial_time = time(NULL);
+
 	// ADD    
     int fd_shm = shm_open(SHM_NAME, O_RDWR, 0660);
     if(fd_shm == -1) return 1;
@@ -61,30 +62,26 @@ int main(int argc, char *argv[]) {
         perror("sigaction err");
         exit(1);
     }
-    int curr_pid = getpid();
     // critical section begins
     mutex = (pthread_mutex_t*) address;
     pthread_mutex_lock(mutex);
 	// client updates available segment
-    time_t curr_time = time(NULL);
     int index = 0;
     for(int i = 1; i < MAX_CLIENTS; i++) {
         current = (stats_t*)(address +(i*SEGSIZE));
         if (current->active == 0) {
             //load pid
-            current->pid = curr_pid;
+            current->pid = getpid();
             current->active = 1;
             //load string
             strcpy(current->clientString, argv[1]);
-            //load start UNIX stamp
-            current->start_time = curr_time;
             //prime sec and msec
             current->elapsed_sec = 0;
             current->elapsed_msec = 0;
 
             char buff[30];
-	    strcpy(buff, ctime(&curr_time));
-	    buff[strlen(buff) -1] = '\0';
+	        strcpy(buff, ctime(&initial_time));
+	        buff[strlen(buff) -1] = '\0';
             strcpy(current->birth, buff);
             index = i;
             break;
@@ -97,20 +94,23 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
     // critical section ends
-    i = index; //useful for when we exit, i know, bad use of i var
 	while (1) {
 
-        double elapsed_time = difftime(time(NULL), curr_time);
+        double elapsed_time = difftime(time(NULL), initial_time);
         //truncating to get s
         int elapsed_seconds = (int)elapsed_time;
         current->elapsed_sec = elapsed_seconds;
         current->elapsed_msec = (elapsed_time - elapsed_seconds)/1000;
         sleep(1);
 		// Print active clients
-        printf("Active clients:");
+        printf("Active clients :");
         for(int i= 1; i < MAX_CLIENTS; i++){
             stats_t* curr = (stats_t*)(address + (i*SEGSIZE));
-            if(curr->active == 1) printf(" %i", curr->pid);
+            if(curr->pid != 0) fprintf(stderr, "Pid: %i @ index: %i, active: %i\n", curr->pid, i, curr->active);
+            if(curr->active == 1) {
+                printf(" %i", curr->pid);
+
+            }
         }
         printf("\n");
     }

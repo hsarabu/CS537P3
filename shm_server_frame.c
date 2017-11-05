@@ -24,7 +24,6 @@ typedef struct {
 	char clientString[10];
 	int elapsed_sec;
 	double elapsed_msec;
-	long unix_start_stamp;
 	int active;
 } stats_t;
 void print_line(stats_t *client, int iteration);
@@ -41,13 +40,15 @@ int main(int argc, char *argv[])
 {
     // ADD
 	//TODO: Error Handling
+	if(argc != 1) exit(1);
 	// Creating a new shared memory segment
 	int fd_shm = shm_open(SHM_NAME, O_RDWR | O_CREAT, 0660);
 	if(fd_shm == -1) return 1;
 	ftruncate(fd_shm, PAGESIZE);
 	address = mmap(NULL, PAGESIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd_shm, 0);
 	address = memset(address, 0, PAGESIZE);
-	mutex = (pthread_mutex_t*) address;
+
+
 	//signal handlers
 	struct sigaction act;
 	act.sa_handler = exit_handler;
@@ -60,10 +61,9 @@ int main(int argc, char *argv[])
 		perror("sigaction error, SIGTERM");
 
 	}
-    //stats_t *client_stats = malloc(sizeof(stats_t)*max_clients);
-	stats_t client_stats[MAX_CLIENTS];
-	memcpy(address, &client_stats, sizeof(client_stats));
+
     // Initializing mutex
+	mutex = (pthread_mutex_t*) address;
 	pthread_mutexattr_init(&mutexAttribute);
 	pthread_mutexattr_setpshared(&mutexAttribute, PTHREAD_PROCESS_SHARED);
 	pthread_mutex_init(mutex, &mutexAttribute);
@@ -71,9 +71,9 @@ int main(int argc, char *argv[])
     while (1) 
 	{
 		for(int i = 1; i < MAX_CLIENTS; i++){
-			stats_t* curr = ((stats_t*)(address + (i*SEGSIZE)));
-			if(curr->active == 1 && curr->pid != 0){
-				printf("%i, pid : %i , birth : %s, elapsed : %i s %f0 ms, %s\n",curr_iteration, curr->pid, curr->birth, curr->elapsed_sec, curr->elapsed_msec, curr->clientString);
+			stats_t* curr = (stats_t*)(address + (i*SEGSIZE));
+			if(curr->active == 1){
+				printf("%i, pid : %i , birth : %s, elapsed : %i s %f ms, %s\n",curr_iteration, curr->pid, curr->birth, curr->elapsed_sec, curr->elapsed_msec, curr->clientString);
 				fprintf(stderr, "TEMP PRINT: %i, pid : %i , birth : %s, elapsed : %i s %f0 ms, %s, active: %i\n",curr_iteration, curr->pid, curr->birth, curr->elapsed_sec, curr->elapsed_msec, curr->clientString, curr->active);
 			}
 		}
@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 }
 
 void print_line(stats_t *client, int iteration){
-	printf("%i, pid : %i , birth : %s, elapsed : %i s %f0 ms, %s\n",iteration, client->pid, client->birth, client->elapsed_sec, client->elapsed_msec, client->clientString);
+	printf("%i, pid : %i , birth : %s, elapsed : %i s %f ms, %s\n",iteration, client->pid, client->birth, client->elapsed_sec, client->elapsed_msec, client->clientString);
 //TODO REMOVE THIS
 	fprintf(stderr, "TEMP PRINT: %i, pid : %i , birth : %s, elapsed : %i s %f0 ms, %s, active: %i\n",iteration, client->pid, client->birth, client->elapsed_sec, client->elapsed_msec, client->clientString, client->active);
 }
