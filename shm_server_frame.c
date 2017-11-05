@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <sys/mman.h>
-#include <time.h>
 #include <memory.h>
 #include <signal.h>
 #include <sys/stat.h>

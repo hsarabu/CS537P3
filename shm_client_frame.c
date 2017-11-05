@@ -28,15 +28,15 @@ void exit_handler(int sig) {
     // critical section begins
 	pthread_mutex_lock(mutex);
     //load pid
-    ((stats_t*)(address + i * sizeof(stats_t)))->pid = NULL;
+    ((stats_t*)(address + i * sizeof(stats_t)))->pid = 0;
     //load string
-    strcpy(((stats_t*)(address + i * sizeof(stats_t)))->clientString, NULL);
+    strcpy(((stats_t*)(address + i * sizeof(stats_t)))->clientString, "");
     //load start UNIX stamp
-    ((stats_t*)(address + i * sizeof(stats_t)))->start_time = NULL ;
+    ((stats_t*)(address + i * sizeof(stats_t)))->start_time = 0;
     //prime sec and msec
-    ((stats_t*)(address + i * sizeof(stats_t)))->elapsed_sec = NULL;
-    ((stats_t*)(address + i * sizeof(stats_t)))->elapsed_msec = NULL;
-    strcpy(((stats_t*)(address + i * sizeof(stats_t)))->birth, NULL);
+    ((stats_t*)(address + i * sizeof(stats_t)))->elapsed_sec = 0;
+    ((stats_t*)(address + i * sizeof(stats_t)))->elapsed_msec = 0;
+    strcpy(((stats_t*)(address + i * sizeof(stats_t)))->birth, "");
 
 	pthread_mutex_unlock(mutex);
 	// critical section ends
