@@ -102,17 +102,10 @@ int main(int argc, char *argv[]) {
         current->elapsed_msec = (elapsed_time - elapsed_seconds)/1000;
         sleep(1);
 		// Print active clients
-        int active_clients[MAX_CLIENTS - 1];
-        int active_clients_counter = 0;
-        for(int i = 0; i < MAX_CLIENTS - 1; i++){
-            if (((stats_t*)(address + i* SEGSIZE))->active == 1){
-                active_clients[active_clients_counter] = ((stats_t*)(address + (i * SEGSIZE)))->pid;
-                active_clients_counter++;
-            }
-        }
-        printf("Active Clients :");
-        for(int i = 0; i < active_clients_counter; i++){
-            printf(" %i", active_clients[i]);
+        printf("Active clients:");
+        for(int i= 1; i < MAX_CLIENTS -1; i++){
+            stats_t* curr = (stats_t*)(address + (i*SEGSIZE));
+            if(curr->active == 1) printf(" %i", curr->pid);
         }
         printf("\n");
     }
