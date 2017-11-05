@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
     while (1) 
 	{
 		for(int i = 0; i < max_clients; i++){
-			if((address + i* sizeof(stats_t)) != NULL){
+			if(((stats_t*)(address + i* sizeof(stats_t)))->pid != 0){
 				print_line(((stats_t*)(address + i * sizeof(stats_t))), curr_iteration);
 			}
 		}
