@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
             current->pid = curr_pid;
             current->active = 1;
             //load string
-            current->clientString, argv[1];
+            strcpy(current->clientString, argv[1]);
             //load start UNIX stamp
             current->start_time = curr_time;
             //prime sec and msec
