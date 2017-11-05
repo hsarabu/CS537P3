@@ -46,6 +46,7 @@ int main(int argc, char *argv[])
 	if(fd_shm == -1) return 1;
 	ftruncate(fd_shm, PAGESIZE);
 	address = mmap(NULL, PAGESIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd_shm, 0);
+	address = memset(address, 0, PAGESIZE);
 	mutex = (pthread_mutex_t*) address;
 	//signal handlers
 	struct sigaction act;
