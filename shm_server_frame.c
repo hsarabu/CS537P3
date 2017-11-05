@@ -9,9 +9,11 @@
 #include <sys/stat.h>
 // ADD NECESSARY HEADERS
 
-
-// Shared memory name: hitesh_bolkai
 #define SHM_NAME "hitesh_bolka"
+//TODO: Change this later
+#define PAGESIZE 4096
+#define SEGSIZE 64
+#define MAX_CLIENTS 64
 // Mutex variables
 pthread_mutex_t* mutex;
 pthread_mutexattr_t mutexAttribute;
@@ -29,7 +31,7 @@ void print_line(stats_t *client, int iteration);
 void exit_handler(int sig)
 {
     // ADD
-    munmap(address, getpagesize()); //TODO: Check if this is right
+    munmap(address, PAGESIZE); //TODO: Check if this is right
 	shm_unlink(SHM_NAME);
 	exit(0);
 }
@@ -41,18 +43,21 @@ int main(int argc, char *argv[])
 	// Creating a new shared memory segment
 	int fd_shm = shm_open(SHM_NAME, O_RDWR | O_CREAT, 0660);
 	if(fd_shm == -1) return 1;
-	ftruncate(fd_shm, getpagesize());
-	address = mmap(NULL, getpagesize(), PROT_READ|PROT_WRITE, MAP_SHARED, fd_shm, 0);
-	int max_clients = getpagesize()/sizeof(stats_t) - 1;
+	ftruncate(fd_shm, PAGESIZE);
+	address = mmap(NULL, PAGESIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd_shm, 0);
 	struct sigaction act;
 	act.sa_handler = exit_handler;
 	act.sa_flags = SA_SIGINFO;
-	if(sigaction(SIGINT|SIGTERM, &act, NULL) < 0) {
+	if(sigaction(SIGINT, &act, NULL) < 0) {
 		perror("sigaction error");
 		return 1;
 	}
+	if(sigaction(SIGTERM, &act, NULL) < 0){
+		perror("sigaction error, SIGTERM");
+
+	}
     //stats_t *client_stats = malloc(sizeof(stats_t)*max_clients);
-	stats_t client_stats[max_clients];
+	stats_t client_stats[MAX_CLIENTS];
 	memcpy(address, &client_stats, sizeof(client_stats));
     // Initializing mutex
 	pthread_mutexattr_init(&mutexAttribute);
@@ -61,9 +66,9 @@ int main(int argc, char *argv[])
 	int curr_iteration = 0;
     while (1) 
 	{
-		for(int i = 0; i < max_clients; i++){
-			if(((stats_t*)(address + i* sizeof(stats_t)))->pid != 0){
-				print_line(((stats_t*)(address + i * sizeof(stats_t))), curr_iteration);
+		for(int i = 1; i < MAX_CLIENTS; i++){
+			if(((stats_t*)(address + i*SEGSIZE))->pid != 0){
+				print_line(((stats_t*)(address + i * SEGSIZE)), curr_iteration);
 			}
 		}
         sleep(1);
