@@ -83,6 +83,7 @@ int main(int argc, char *argv[]) {
             current->elapsed_msec = 0;
             strcpy(current->birth, ctime(&curr_time));
             index = i;
+            break;
         }
     }
 	pthread_mutex_unlock(mutex);
