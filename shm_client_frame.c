@@ -30,18 +30,7 @@ int i = 0;
 void exit_handler(int sig) {
     // critical section begins
 	pthread_mutex_lock(mutex);
-    //load pid
-    ((stats_t*)(address + i * SEGSIZE))->pid = 0;
-    ((stats_t*)(address + i * SEGSIZE))->active = 0;
-    //load string
-    strcpy(((stats_t*)(address + i * SEGSIZE))->clientString, "");
-    //load start UNIX stamp
-    ((stats_t*)(address + i * SEGSIZE))->start_time = 0;
-    //prime sec and msec
-    ((stats_t*)(address + i * SEGSIZE))->elapsed_sec = 0;
-    ((stats_t*)(address + i * SEGSIZE))->elapsed_msec = 0;
-    strcpy(((stats_t*)(address + i * SEGSIZE))->birth, "");
-
+    memset(((stats_t*)(address + i * SEGSIZE)), 0, 64);
 	pthread_mutex_unlock(mutex);
 	// critical section ends
 
@@ -58,6 +47,7 @@ int main(int argc, char *argv[]) {
     int fd_shm = shm_open(SHM_NAME, O_RDWR, 0660);
     if(fd_shm == -1) return 1;
     address = mmap(NULL, 4096, PROT_READ|PROT_WRITE,MAP_SHARED, fd_shm, 0);
+    if(address == MAP_FAILED) exit(1);
     struct sigaction act;
     act.sa_handler = exit_handler;
     //act.sa_flags = SA_SIGINFO;
@@ -80,7 +70,7 @@ int main(int argc, char *argv[]) {
         if (((stats_t *) (address + i * SEGSIZE))->active == 0) {
             //load pid
             ((stats_t *) (address + i * SEGSIZE))->pid = curr_pid;
-            ((stats_t*)(address + i * SEGSIZE))->pid = 1;
+            ((stats_t*)(address + i * SEGSIZE))->active = 1;
             //load string
             strcpy(((stats_t *) (address + i * SEGSIZE))->clientString,
                    argv[1]);
