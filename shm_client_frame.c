@@ -24,13 +24,15 @@ typedef struct {
     time_t start_time;
     int active;
 } stats_t;
+stats_t* current;
+
 
 int i = 0;
 
 void exit_handler(int sig) {
     // critical section begins
 	pthread_mutex_lock(mutex);
-    memset(((stats_t*)(address + i * SEGSIZE)), 0, 64);
+    memset(current, 0, 64);
 	pthread_mutex_unlock(mutex);
 	// critical section ends
 
@@ -67,20 +69,19 @@ int main(int argc, char *argv[]) {
     time_t curr_time = time(NULL);
     int index = 0;
     for(int i = 1; i < MAX_CLIENTS; i++) {
-        if (((stats_t *) (address + i * SEGSIZE))->active == 0) {
+        current = (stats_t*)(address +(i*SEGSIZE));
+        if (current->active == 0) {
             //load pid
-            ((stats_t *) (address + i * SEGSIZE))->pid = curr_pid;
-            ((stats_t*)(address + i * SEGSIZE))->active = 1;
+            current->pid = curr_pid;
+            current->active = 1;
             //load string
-            strcpy(((stats_t *) (address + i * SEGSIZE))->clientString,
-                   argv[1]);
+            current->clientString, argv[1];
             //load start UNIX stamp
-            ((stats_t *) (address + i * SEGSIZE))->start_time = curr_time;
+            current->start_time = curr_time;
             //prime sec and msec
-            ((stats_t *) (address + i * SEGSIZE))->elapsed_sec = 0;
-            ((stats_t *) (address + i * SEGSIZE))->elapsed_msec = 0;
-            strcpy(((stats_t *) (address + i * SEGSIZE))->birth,
-                   ctime(&curr_time));
+            current->elapsed_sec = 0;
+            current->elapsed_msec = 0;
+            strcpy(current->birth, ctime(&curr_time));
             index = i;
         }
     }
@@ -96,15 +97,15 @@ int main(int argc, char *argv[]) {
         double elapsed_time = difftime(time(NULL), curr_time);
         //truncating to get s
         int elapsed_seconds = (int)elapsed_time;
-        ((stats_t*)(address + index * SEGSIZE))->elapsed_sec = elapsed_seconds;
-        ((stats_t*)(address + index * SEGSIZE))->elapsed_msec = (elapsed_time - elapsed_seconds)/1000;
+        current->elapsed_sec = elapsed_seconds;
+        current->elapsed_msec = (elapsed_time - elapsed_seconds)/1000;
         sleep(1);
 		// Print active clients
         int active_clients[MAX_CLIENTS - 1];
         int active_clients_counter = 0;
         for(int i = 0; i < MAX_CLIENTS - 1; i++){
             if (((stats_t*)(address + i* SEGSIZE))->active == 1){
-                active_clients[active_clients_counter] = ((stats_t*)(address + i * SEGSIZE))->pid;
+                active_clients[active_clients_counter] = ((stats_t*)(address + (i * SEGSIZE)))->pid;
                 active_clients_counter++;
             }
         }
