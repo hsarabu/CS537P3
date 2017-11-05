@@ -1,7 +1,6 @@
 all: shm_server shm_client
 
 shm_server:
-	gcc -o shm_server shm_server_frame.c -Wall -Werror -lrt -lpthread
-
+	gcc shm_server_frame.c -o shm_server -Wall -Werror -lrt -lpthread
 shm_client:
-	gcc -o shm_client shm_client_frame.c -Wall -Werror -lrt -lpthread
+	gcc shm_client_frame.c -o shm_client -Wall -Werror -lrt -lpthread
