@@ -7,12 +7,12 @@
 #include <time.h>
 #include <memory.h>
 #include <signal.h>
+#include <sys/stat.h>
 // ADD NECESSARY HEADERS
 
 
 // Shared memory name: hitesh_bolkai
 #define SHM_NAME "hitesh_bolka"
-#define NULL 0
 // Mutex variables
 pthread_mutex_t* mutex;
 pthread_mutexattr_t mutexAttribute;
@@ -41,12 +41,12 @@ int main(int argc, char *argv[])
 	//TODO: Error Handling
 	// Creating a new shared memory segment
 	int fd_shm = shm_open(SHM_NAME, O_RDWR | O_CREAT, 0660);
-	if(fd_shm == NULL) return 1;
+	if(fd_shm == -1) return 1;
 	ftruncate(fd_shm, getpagesize());
 	address = mmap(NULL, getpagesize(), PROT_READ|PROT_WRITE, MAP_SHARED, fd_shm, 0);
 	int max_clients = getpagesize()/sizeof(stats_t) - 1;
 	struct sigaction act;
-	act.sa_sigaction = &exit_handler;
+	act.sa_handler = exit_handler;
 	act.sa_flags = SA_SIGINFO;
 	if(sigaction(SIGINT|SIGTERM, &act, NULL) < 0) {
 		perror("sigaction error");
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 	}
     //stats_t *client_stats = malloc(sizeof(stats_t)*max_clients);
 	stats_t client_stats[max_clients];
-	memcpy(fd_shm, &client_stats);
+	memcpy(address, &client_stats, sizeof(client_stats));
     // Initializing mutex
 	pthread_mutexattr_init(&mutexAttribute);
 	pthread_mutexattr_setpshared(&mutexAttribute, PTHREAD_PROCESS_SHARED);
@@ -75,5 +75,5 @@ int main(int argc, char *argv[])
 }
 
 void print_line(stats_t *client, int iteration){
-	printf("%i, pid : %i , birth : %s, elapsed : %i s %d0 ms, %s",iteration, client->pid, client->birth, client->elapsed_sec, client->elapsed_msec, client->clientString);
+	printf("%i, pid : %i , birth : %s, elapsed : %i s %f0 ms, %s",iteration, client->pid, client->birth, client->elapsed_sec, client->elapsed_msec, client->clientString);
 }

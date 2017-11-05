@@ -6,10 +6,10 @@
 #include <sys/mman.h>
 #include <signal.h>
 #include <memory.h>
+#include <sys/stat.h>
 // ADD NECESSARY HEADERS
 
 #define SHM_NAME "hitesh_bolka"
-#define NULL 0
 // Mutex variables
 pthread_mutex_t* mutex;
 void* address;
@@ -47,9 +47,10 @@ void exit_handler(int sig) {
 int main(int argc, char *argv[]) {
 	// ADD    
     int fd_shm = shm_open(SHM_NAME, O_RDWR, 0660);
+    if(fd_shm == -1) return 1;
     address = mmap(NULL, getpagesize(), PROT_READ|PROT_WRITE,MAP_SHARED, fd_shm, 0);
     struct sigaction act;
-    act.sa_sigaction = &exit_handler;
+    act.sa_handler = &exit_handler;
     act.sa_flags = SA_SIGINFO;
     if(sigaction(SIGTERM|SIGINT, &act, NULL) < 0){
         perror("sigaction error");
