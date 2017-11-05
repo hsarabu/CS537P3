@@ -47,16 +47,25 @@ void exit_handler(int sig) {
 }
 
 int main(int argc, char *argv[]) {
+
+    if(argc != 2){
+        fprintf(stderr, "require 1 arg");
+        exit(1)
+    }
 	// ADD    
     int fd_shm = shm_open(SHM_NAME, O_RDWR, 0660);
     if(fd_shm == -1) return 1;
     address = mmap(NULL, 4096, PROT_READ|PROT_WRITE,MAP_SHARED, fd_shm, 0);
     struct sigaction act;
-    act.sa_handler = &exit_handler;
-    act.sa_flags = SA_SIGINFO;
-    if(sigaction(SIGTERM|SIGINT, &act, NULL) < 0){
+    act.sa_handler = exit_handler;
+    //act.sa_flags = SA_SIGINFO;
+    if(sigaction(SIGTERM, &act, NULL) < 0){
         perror("sigaction error");
-        return 1;
+        exit(1);
+    }
+    if(sigaction(SIGINT, &act, NULL) < 0){
+        perror("sigaction err");
+        exit(1);
     }
     int curr_pid = getpid();
     // critical section begins
@@ -65,27 +74,28 @@ int main(int argc, char *argv[]) {
 	// client updates available segment
     time_t curr_time = time(NULL);
     int index = 0;
-    for(int i = 1; i < MAX_CLIENTS; i++){
-        if (((stats_t*)(address + i*SEGSIZE))->pid == 0){
+    for(int i = 1; i < MAX_CLIENTS; i++) {
+        if (((stats_t *) (address + i * SEGSIZE))->pid == 0) {
             //load pid
-            ((stats_t*)(address + i * SEGSIZE))->pid = curr_pid;
+            ((stats_t *) (address + i * SEGSIZE))->pid = curr_pid;
             //load string
-            strcpy(((stats_t*)(address + i * SEGSIZE))->clientString, argv[1]);
+            strcpy(((stats_t *) (address + i * SEGSIZE))->clientString,
+                   argv[1]);
             //load start UNIX stamp
-            ((stats_t*)(address + i * SEGSIZE))->start_time = curr_time ;
+            ((stats_t *) (address + i * SEGSIZE))->start_time = curr_time;
             //prime sec and msec
-            ((stats_t*)(address + i * SEGSIZE))->elapsed_sec = 0;
-            ((stats_t*)(address + i * SEGSIZE))->elapsed_msec = 0;
-            strcpy(((stats_t*)(address + i * SEGSIZE))->birth, ctime(&curr_time));
+            ((stats_t *) (address + i * SEGSIZE))->elapsed_sec = 0;
+            ((stats_t *) (address + i * SEGSIZE))->elapsed_msec = 0;
+            strcpy(((stats_t *) (address + i * SEGSIZE))->birth,
+                   ctime(&curr_time));
             index = i;
         }
     }
+	pthread_mutex_unlock(mutex);
     if(index == 0){
         fprintf(stderr, "%s\n", "Maximum number of clients reached");
         exit(1);
     }
-
-	pthread_mutex_unlock(mutex);
     // critical section ends
     i = index; //useful for when we exit, i know, bad use of i var
 	while (1) {
@@ -100,7 +110,7 @@ int main(int argc, char *argv[]) {
         int active_clients[MAX_CLIENTS - 1];
         int active_clients_counter = 0;
         for(int i = 0; i < MAX_CLIENTS - 1; i++){
-            if ((address + i* SEGSIZE) != NULL){
+            if (((stats_t*)(address + i* SEGSIZE))->pid != 0){
                 active_clients[active_clients_counter] = ((stats_t*)(address + i * SEGSIZE))->pid;
                 active_clients_counter++;
             }

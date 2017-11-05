@@ -45,9 +45,11 @@ int main(int argc, char *argv[])
 	if(fd_shm == -1) return 1;
 	ftruncate(fd_shm, PAGESIZE);
 	address = mmap(NULL, PAGESIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd_shm, 0);
+	mutex = (pthread_mutex_t*) address;
+	//signal handlers
 	struct sigaction act;
 	act.sa_handler = exit_handler;
-	act.sa_flags = SA_SIGINFO;
+	//act.sa_flags = SA_SIGINFO;
 	if(sigaction(SIGINT, &act, NULL) < 0) {
 		perror("sigaction error");
 		return 1;
