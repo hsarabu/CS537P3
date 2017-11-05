@@ -88,7 +88,6 @@ int main(int argc, char *argv[]) {
         }
     }
 	pthread_mutex_unlock(mutex);
-    fprintf(stderr, "Index is %i, pid is: %i, string is: %s \n", index, current->pid, current->clientString);
 	if(index == 0){
         fprintf(stderr, "%s\n", "Maximum number of clients reached");
         exit(1);
@@ -106,7 +105,6 @@ int main(int argc, char *argv[]) {
         printf("Active clients :");
         for(int i= 1; i < MAX_CLIENTS; i++){
             stats_t* curr = (stats_t*)(address + (i*SEGSIZE));
-            if(curr->pid != 0) fprintf(stderr, "Pid: %i @ index: %i, active: %i\n", curr->pid, i, curr->active);
             if(curr->active == 1) {
                 printf(" %i", curr->pid);
 

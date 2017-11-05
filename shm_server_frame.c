@@ -26,7 +26,6 @@ typedef struct {
 	double elapsed_msec;
 	int active;
 } stats_t;
-void print_line(stats_t *client, int iteration);
 
 void exit_handler(int sig)
 {
@@ -74,7 +73,7 @@ int main(int argc, char *argv[])
 			stats_t* curr = (stats_t*)(address + (i*SEGSIZE));
 			if(curr->active == 1){
 				printf("%i, pid : %i , birth : %s, elapsed : %i s %f ms, %s\n",curr_iteration, curr->pid, curr->birth, curr->elapsed_sec, curr->elapsed_msec, curr->clientString);
-				fprintf(stderr, "TEMP PRINT: %i, pid : %i , birth : %s, elapsed : %i s %f0 ms, %s, active: %i\n",curr_iteration, curr->pid, curr->birth, curr->elapsed_sec, curr->elapsed_msec, curr->clientString, curr->active);
+				fprintf(stderr, "TEMP PRINT: %i, pid : %i , birth : %s, elapsed : %i s %f ms, %s\n",curr_iteration, curr->pid, curr->birth, curr->elapsed_sec, curr->elapsed_msec, curr->clientString);
 			}
 		}
         sleep(1);
@@ -82,10 +81,4 @@ int main(int argc, char *argv[])
     }
 
     return 0;
-}
-
-void print_line(stats_t *client, int iteration){
-	printf("%i, pid : %i , birth : %s, elapsed : %i s %f ms, %s\n",iteration, client->pid, client->birth, client->elapsed_sec, client->elapsed_msec, client->clientString);
-//TODO REMOVE THIS
-	fprintf(stderr, "TEMP PRINT: %i, pid : %i , birth : %s, elapsed : %i s %f0 ms, %s, active: %i\n",iteration, client->pid, client->birth, client->elapsed_sec, client->elapsed_msec, client->clientString, client->active);
 }
