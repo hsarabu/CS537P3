@@ -25,6 +25,7 @@ typedef struct {
 	int elapsed_sec;
 	double elapsed_msec;
 	long unix_start_stamp;
+	int active;
 } stats_t;
 void print_line(stats_t *client, int iteration);
 
@@ -69,7 +70,7 @@ int main(int argc, char *argv[])
     while (1) 
 	{
 		for(int i = 1; i < MAX_CLIENTS; i++){
-			if(((stats_t*)(address + i*SEGSIZE))->pid != 0){
+			if(((stats_t*)(address + i*SEGSIZE))->active == 1){
 				print_line(((stats_t*)(address + i * SEGSIZE)), curr_iteration);
 			}
 		}
@@ -81,5 +82,5 @@ int main(int argc, char *argv[])
 }
 
 void print_line(stats_t *client, int iteration){
-	printf("%i, pid : %i , birth : %s, elapsed : %i s %f0 ms, %s",iteration, client->pid, client->birth, client->elapsed_sec, client->elapsed_msec, client->clientString);
+	printf("%i, pid : %i , birth : %s, elapsed : %i s %f0 ms, %s\n",iteration, client->pid, client->birth, client->elapsed_sec, client->elapsed_msec, client->clientString);
 }

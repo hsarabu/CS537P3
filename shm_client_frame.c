@@ -22,6 +22,7 @@ typedef struct {
     int elapsed_sec;
     double elapsed_msec;
     time_t start_time;
+    int active;
 } stats_t;
 
 int i = 0;
@@ -31,6 +32,7 @@ void exit_handler(int sig) {
 	pthread_mutex_lock(mutex);
     //load pid
     ((stats_t*)(address + i * SEGSIZE))->pid = 0;
+    ((stats_t*)(address + i * SEGSIZE))->active = 0;
     //load string
     strcpy(((stats_t*)(address + i * SEGSIZE))->clientString, "");
     //load start UNIX stamp
@@ -50,7 +52,7 @@ int main(int argc, char *argv[]) {
 
     if(argc != 2){
         fprintf(stderr, "require 1 arg");
-        exit(1)
+        exit(1);
     }
 	// ADD    
     int fd_shm = shm_open(SHM_NAME, O_RDWR, 0660);
@@ -75,9 +77,10 @@ int main(int argc, char *argv[]) {
     time_t curr_time = time(NULL);
     int index = 0;
     for(int i = 1; i < MAX_CLIENTS; i++) {
-        if (((stats_t *) (address + i * SEGSIZE))->pid == 0) {
+        if (((stats_t *) (address + i * SEGSIZE))->active == 0) {
             //load pid
             ((stats_t *) (address + i * SEGSIZE))->pid = curr_pid;
+            ((stats_t*)(address + i * SEGSIZE))->pid = 1;
             //load string
             strcpy(((stats_t *) (address + i * SEGSIZE))->clientString,
                    argv[1]);
@@ -110,7 +113,7 @@ int main(int argc, char *argv[]) {
         int active_clients[MAX_CLIENTS - 1];
         int active_clients_counter = 0;
         for(int i = 0; i < MAX_CLIENTS - 1; i++){
-            if (((stats_t*)(address + i* SEGSIZE))->pid != 0){
+            if (((stats_t*)(address + i* SEGSIZE))->active == 1){
                 active_clients[active_clients_counter] = ((stats_t*)(address + i * SEGSIZE))->pid;
                 active_clients_counter++;
             }
