@@ -81,13 +81,18 @@ int main(int argc, char *argv[]) {
             //prime sec and msec
             current->elapsed_sec = 0;
             current->elapsed_msec = 0;
-            strcpy(current->birth, ctime(&curr_time));
+
+            char buff[30];
+	    strcpy(buff, ctime(&curr_time));
+	    buff[strlen(buff) -1] = '\0';
+            strcpy(current->birth, buff);
             index = i;
             break;
         }
     }
 	pthread_mutex_unlock(mutex);
-    if(index == 0){
+    fprintf(stderr, "Index is %i \n", index);
+	if(index == 0){
         fprintf(stderr, "%s\n", "Maximum number of clients reached");
         exit(1);
     }

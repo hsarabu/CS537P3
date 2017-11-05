@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 		for(int i = 1; i < MAX_CLIENTS; i++){
 			stats_t* curr = ((stats_t*)(address + (i*SEGSIZE)));
 			if(curr->active == 1 && curr->pid != 0){
-				print_line(((stats_t*)(address + (i * SEGSIZE))), curr_iteration);
+				print_line(curr, curr_iteration);
 			}
 		}
         sleep(1);
@@ -85,4 +85,6 @@ int main(int argc, char *argv[])
 
 void print_line(stats_t *client, int iteration){
 	printf("%i, pid : %i , birth : %s, elapsed : %i s %f0 ms, %s\n",iteration, client->pid, client->birth, client->elapsed_sec, client->elapsed_msec, client->clientString);
+//TODO REMOVE THIS
+	fprintf(stderr, "TEMP PRINT: %i, pid : %i , birth : %s, elapsed : %i s %f0 ms, %s, active: %i\n",iteration, client->pid, client->birth, client->elapsed_sec, client->elapsed_msec, client->clientString, client->active);
 }
